@@ -1,0 +1,19 @@
+.dashboard_rickshaw {
+    position: relative;
+}
+
+.y_axis {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+}
+
+.chart {
+    position: relative;
+    left: 40px;
+}
+
+.rickshaw_graph .y_ticks {
+    left: 0;
+}
