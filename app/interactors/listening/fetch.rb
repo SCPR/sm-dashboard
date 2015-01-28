@@ -21,9 +21,19 @@ module Listening
           minutes: {
             date_histogram: {
               field:    "time",
-              interval: "minute",
+              interval: "10m",
             },
             aggs: {
+              sessions: {
+                cardinality: {
+                  field: "session_id",
+                  precision_threshold: 100,
+                }
+              },
+              duration: {
+                sum: { field: "duration" }
+              },
+
               stream: {
                 terms: {
                   field:  "stream",

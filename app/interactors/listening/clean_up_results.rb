@@ -7,7 +7,7 @@ module Listening
 
       context._results.aggregations.minutes.buckets.each do |b|
         ts = Time.at(b['key'] / 1000)
-        obj = Hashie::Mash.new time:ts.utc, streams:{}, rewind:{}
+        obj = Hashie::Mash.new time:ts.utc, streams:{}, rewind:{}, sessions:b.sessions.value, duration:b.duration.value
 
         b.stream.buckets.each do |sb|
           obj.streams[ sb['key'] ] = { requests:sb.doc_count, duration:sb.duration.value }

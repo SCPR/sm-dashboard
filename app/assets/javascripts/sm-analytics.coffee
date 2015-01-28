@@ -1,5 +1,6 @@
 class SM_Analytics
-    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64']
+    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcclive']
+    @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],["kpcclive"]]
     @REWINDS: ['0.0-60.0','60.0-900.0','900.0-3600.0','3600.0-*']
 
     constructor: (opts) ->
@@ -13,13 +14,25 @@ class SM_Analytics
         @data_points.on "reset", =>
             console.log "should draw graph(s)"
 
-            @rickshaw_g = new SM_Analytics.RickshawStreamListenersGraph collection:@data_points
-            @target.append @rickshaw_g.el
-            @rickshaw_g.render()
+            #@rickshaw_g = new SM_Analytics.RickshawStreamListenersGraph collection:@data_points
+            #@target.append @rickshaw_g.el
+            #@rickshaw_g.render()
 
-            @rewind_g = new SM_Analytics.RickshawRewindGraph collection:@data_points
-            @target.append @rewind_g.el
-            @rewind_g.render()
+            @c3_g = new SM_Analytics.C3ListenersGraph collection:@data_points
+            @target.append @c3_g.el
+            @c3_g.render()
+
+            #@rewind_g = new SM_Analytics.RickshawRewindGraph collection:@data_points
+            #@target.append @rewind_g.el
+            #@rewind_g.render()
+
+            #@mg_listen = new SM_Analytics.MGListenersGraph collection:@data_points
+            #@target.append @mg_listen.el
+            #@mg_listen.render()
+
+            #@ep_listen = new SM_Analytics.EpochListenersGraph collection:@data_points
+            #@target.append @ep_listen.el
+            #@ep_listen.render()
 
         # make our initial request
         $.getJSON "/api/listens", (data) =>
@@ -28,6 +41,182 @@ class SM_Analytics
     #----------
 
     draw_chart: ->
+
+    #----------
+
+    class @C3ListenersCompGraph extends Backbone.View
+        className: "c3"
+
+        initialize: ->
+            @chart = c3.generate
+                bindto: @el,
+                data:
+                    columns: @_data()
+                    x: "x"
+                axis:
+                    x:
+                        type: "timeseries"
+                        tick:
+                            format: "%H:%M"
+                point:
+                    show: false
+                line_step_type: 'cardinal'
+
+        _data: ->
+            #data = ( [s] for s in SM_Analytics.STREAMS )
+            x = ["x"]
+
+            duration = ["Duration"]
+            sessions = ["Sessions"]
+
+            ema = null
+
+            # use ten periods...
+            ema_p = 2 / ( @ema_periods + 1 )
+
+            for m in @collection.models
+                #s = m.get("series")
+
+                total = 0
+
+                x.push m.get("time")
+                duration.push (m.get("duration") / 60)
+                sessions.push m.get("sessions")
+
+            [x,duration,sessions]
+
+        render: ->
+            @chart.resize()
+            @
+
+
+    class @C3ListenersGraph extends Backbone.View
+        className: "c3"
+
+        initialize: ->
+            @chart = c3.generate
+                bindto: @el,
+                data:
+                    type: "line"
+                    columns: @_data()
+                    x: "x"
+                    groups: SM_Analytics.STREAM_GROUPS
+                axis:
+                    x:
+                        type: "timeseries"
+                        tick:
+                            format: "%H:%M"
+                            count: 24
+                point:
+                    show: false
+
+        _data: ->
+            data = ( [s] for s in SM_Analytics.STREAMS )
+            x = ["x"]
+
+            totals = ["Total"]
+
+            for m in @collection.models
+                s = m.get("series")
+
+                x.push m.get("time")
+                totals.push ( m.get("duration") / 600 )
+
+                for i in [0..3]
+                    l = Math.floor(s[i] / 600)
+                    data[i].push l
+
+            [x,data...]
+
+        render: ->
+            @chart.resize()
+            setTimeout =>
+                @chart.flush()
+            , 300
+            @
+
+    #----------
+
+    class @EpochListenersGraph extends Backbone.View
+        className: "epoch"
+
+        initialize: ->
+            @$el.html "<div class='epoch-graph'></div>"
+
+            @$graph = @$(".epoch-graph")
+
+        _dataAsSeries: ->
+           data = ( time:s, values:[] for s in SM_Analytics.STREAMS )
+
+           averaged = time:"Averaged Total", values:[]
+
+           # use ten periods...
+           ema = null
+           ema_p = 2 / ( @ema_periods + 1 )
+
+           for m in @collection.models
+               s = m.get("series")
+
+               total = 0
+
+               t = (Number(m.get("time")) / 1000)
+               for i in [0..2]
+                   l = Math.floor(s[i] / 60)
+                   data[i].values.push time:t, y:l
+                   total += l
+
+               ema = if ema then ( total * ema_p ) + ( ema * (1 - ema_p) ) else total
+               averaged.values.push time:t, y:ema
+
+           [data...,averaged]
+
+        render: ->
+            @$graph.epoch
+                type:   "time.area"
+                data:   @_dataAsSeries()
+            @
+
+    #----------
+
+    class @MGListenersGraph extends Backbone.View
+        className: "mg col-lg-8"
+        id: "mg-listeners"
+
+        initialize: ->
+
+        _dataAsArray: ->
+            data = []
+
+            for m in @collection.models
+                t = 0
+
+                md = date:m.get("time")
+
+                for s,idx in m.get("series")
+                    md[ SM_Analytics.STREAMS[idx] ] = ( s / 60)
+                    t += s
+
+                md.total = t / 60
+
+                data.push md
+
+            data
+
+        render: ->
+            vkeys = ['total',SM_Analytics.STREAMS...]
+
+            @_data = MG.data_graphic
+                data: @_dataAsArray()
+                target: "#mg-listeners"
+                title:  "MG Test Duration"
+                width:  800
+                height: 400
+                y_accessor: vkeys
+                aggregate_rollover: true
+                legend: vkeys
+                legend_target: ".legend"
+
+            @
 
     #----------
 
@@ -118,7 +307,7 @@ class SM_Analytics
                 total = 0
 
                 t = (Number(m.get("time")) / 1000)
-                for i in [0..2]
+                for i in [0..3]
                     l = Math.floor(s[i] / 60)
                     data[i].data.push x:t, y:l
                     total += l
@@ -134,6 +323,9 @@ class SM_Analytics
             @graph.configure series:@_dataAsSeriesArray()
             @graph.render()
             @
+
+
+    #----------
 
     class @DataPoint extends Backbone.Model
         idAttribute: "_time"
