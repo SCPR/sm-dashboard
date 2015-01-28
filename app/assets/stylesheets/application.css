@@ -12,8 +12,5 @@
  *
  *= require_tree .
  *= require_self
- *= require epoch
- *= require rickshaw
- *= require metricsgraphics
  *= require c3
  */

@@ -1,9 +1,6 @@
 {
   "name": "dsl-generated dependencies",
   "dependencies": {
-    "backbone": "latest",
-    "rickshaw": "latest",
-    "epoch": "latest",
-    "timezone": "latest"
+    "backbone": "latest"
   }
 }
