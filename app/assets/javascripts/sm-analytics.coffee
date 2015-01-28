@@ -1,30 +1,107 @@
+#= require_tree ./templates
+
 class SM_Analytics
     @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcclive']
     @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],["kpcclive"]]
-    @REWINDS: ['0.0-60.0','60.0-900.0','900.0-3600.0','3600.0-*']
+    @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
+    @CLIENTS: ['kpcc-iphone','scprweb']
+
+    @SESSION_DUR_BUCKETS = ["< 1min","1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
     constructor: (opts) ->
-        @target = $(opts.target)
-
         console.log "SM Running!"
 
         @data_points = new SM_Analytics.DataPoints
-
 
         @data_points.on "reset", =>
             console.log "should draw graph(s)"
 
             @c3_g = new SM_Analytics.C3ListenersGraph collection:@data_points
-            @target.append @c3_g.el
+            $("#graph-listeners").html @c3_g.el
             @c3_g.render()
 
-        # make our initial request
+            @c3_ua = new SM_Analytics.C3UAGraph collection:@data_points
+            $("#graph-clients").html @c3_ua.el
+            @c3_ua.render()
+
+        @sessions = new SM_Analytics.Sessions
+
+        @sessions.on "reset", =>
+            @g_sessions = new SM_Analytics.C3SessionsGraph collection:@sessions
+            $("#graph-sessions").html @g_sessions.el
+            @g_sessions.render()
+
+        # -- make our initial requests -- #
+
         $.getJSON "/api/listens", (data) =>
             @data_points.reset(data)
 
+        $.getJSON "/api/sessions", (data) =>
+            @sessions.reset(data.periods)
+
+        # -- set up "This Hour" top line -- #
+
+        @this_hour = new SM_Analytics.ThisHour
+        @hour_view = new SM_Analytics.ThisHourView model:@this_hour
+        $("#top-line").html @hour_view.el
+        @hour_view.render()
+        @this_hour.fetch()
+
+        setInterval =>
+            @this_hour.fetch()
+        , 60*1000 # one minute
+
     #----------
 
-    draw_chart: ->
+    class @C3UAGraph extends Backbone.View
+        className: "c3 c3_ua"
+
+        initialize: ->
+                @chart = c3.generate
+                    bindto: @el,
+                    data:
+                        type: "line"
+                        columns: @_data()
+                        x: "x"
+                    axis:
+                        x:
+                            type: "timeseries"
+                            tick:
+                                format: "%H:%M"
+                                count: 24
+                    point:
+                        show: true
+                    transition:
+                        duration: 0
+                    point:
+                        r:  1
+                        focus:
+                            expand:
+                                r: 4
+
+            _data: ->
+                data = ( [s] for s in SM_Analytics.CLIENTS )
+                x = ["x"]
+
+                for m in @collection.models
+                    c = m.get("clients")
+
+                    x.push m.get("time")
+
+                    for key,idx in SM_Analytics.CLIENTS
+                        if c[key]
+                            data[idx].push c[key].listeners
+                        else
+                            data[idx].push 0
+
+                [x,data...]
+
+            render: ->
+                @chart.resize()
+                setTimeout =>
+                    @chart.flush()
+                , 300
+                @
 
     #----------
 
@@ -35,10 +112,10 @@ class SM_Analytics
             @chart = c3.generate
                 bindto: @el,
                 data:
-                    type: "line"
                     columns: @_data()
                     x: "x"
                     groups: SM_Analytics.STREAM_GROUPS
+                    type: "spline"
                 axis:
                     x:
                         type: "timeseries"
@@ -46,7 +123,14 @@ class SM_Analytics
                             format: "%H:%M"
                             count: 24
                 point:
-                    show: false
+                    show: true
+                transition:
+                    duration: 0
+                point:
+                    r:  1
+                    focus:
+                        expand:
+                            r: 4
 
         _data: ->
             data = ( [s] for s in SM_Analytics.STREAMS )
@@ -55,14 +139,12 @@ class SM_Analytics
             totals = ["Total"]
 
             for m in @collection.models
-                s = m.get("series")
-
                 x.push m.get("time")
-                totals.push ( m.get("duration") / 600 )
+                totals.push m.get("listeners")
 
-                for i in [0..3]
-                    l = Math.floor(s[i] / 600)
-                    data[i].push l
+                streams = m.get("streams")
+                for key,idx in SM_Analytics.STREAMS
+                    data[idx].push streams[key]?.listeners || 0
 
             [x,data...]
 
@@ -75,15 +157,73 @@ class SM_Analytics
 
     #----------
 
+    class @C3SessionsGraph extends Backbone.View
+        className: "c3 c3_sessions"
+
+        initialize: ->
+            @chart = c3.generate
+                bindto: @el,
+                data:
+                    columns: @_data()
+                    type: "bar"
+                axis:
+                    x:
+                        type: "category",
+                        categories: SM_Analytics.SESSION_DUR_BUCKETS
+                transition:
+                    duration: 0
+                bar:
+                    zerobased: true
+                legend:
+                    hide: true
+
+        _data: ->
+            totals = {}
+            for k in SM_Analytics.SESSION_DUR_BUCKETS
+                totals[k] = 0
+
+            for m in @collection.models
+                for k,v of m.get("duration")
+                    console.log "k is !#{k}!", v
+                    totals[k] += v
+
+            console.log "totals is ", totals
+
+            t_arr = ["durations",( totals[k] for k in SM_Analytics.SESSION_DUR_BUCKETS )...]
+            [t_arr]
+
+        render: ->
+            @chart.resize()
+            setTimeout =>
+                @chart.flush()
+            , 300
+            @
+
+    #----------
+
+    class @ThisHour extends Backbone.Model
+        url: "/api/hour"
+
+    class @ThisHourView extends Backbone.View
+        template: JST['this_hour']
+
+        initialize: ->
+            @model.on "change", =>
+                @render()
+
+        render: ->
+            @$el.html @template @model.toJSON()
+
+            @
+
+    #----------
+
     class @DataPoint extends Backbone.Model
         idAttribute: "_time"
 
         constructor: (data,opts) ->
             data._time = data.time
             data.time = new Date(data.time)
-
-            data.series = ( ( data.streams[k]?.duration || 0 ) for k in SM_Analytics.STREAMS )
-            data.rewinds = ( ( data.rewind[k]?.duration || 0 ) for k in SM_Analytics.REWINDS )
 
             super data, opts
 
@@ -92,13 +232,11 @@ class SM_Analytics
     class @DataPoints extends Backbone.Collection
         model: SM_Analytics.DataPoint
 
-        asDataArray: ->
-            keys = ['value1','value2','value3']
-
-            @models.map (m) -> _.extend date:m.get('time'), _.object(keys,m.get('series'))
-
-        asSeriesArray: ->
-
     #----------
+
+    class @SessionPeriod extends @DataPoint
+
+    class @Sessions extends @DataPoints
+        model: SM_Analytics.SessionPeriod
 
 window.SM_Analytics = SM_Analytics

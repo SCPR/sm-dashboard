@@ -8,7 +8,7 @@ module Api
 
     private
     def listen_params
-      params.permit(:start)
+      params.permit(:start,:limit)
     end
   end
 end

@@ -21,6 +21,9 @@ gem 'elasticsearch'
 gem "interactor", "~> 3.0"
 gem "interactor-rails", "~> 2.0"
 
+gem 'haml_coffee_assets', github:"netzpirat/haml_coffee_assets"
+gem 'execjs'
+
 group :development, :test do
   gem 'pry'
   gem 'byebug'

@@ -1,0 +1,14 @@
+.col-md-2.bg-success
+    %h2 This Hour
+.col-md-4
+    %h2
+        = @listens?.listeners || "??"
+        %small Listeners
+.col-md-3
+    %h2
+        = @starts?.starts || "??"
+        %small Sessions Started
+.col-md-3
+    %h2
+        = @sessions?.sessions || "??"
+        %small Sessions Completed

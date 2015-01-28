@@ -1,3 +1,12 @@
+GIT
+  remote: git://github.com/netzpirat/haml_coffee_assets.git
+  revision: a3c2951eca005d4fcce4837b9a97a139fc022c66
+  specs:
+    haml_coffee_assets (1.16.0)
+      coffee-script (~> 2.0)
+      sprockets (~> 2.0)
+      tilt (~> 1.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -196,8 +205,10 @@ DEPENDENCIES
   byebug
   coffee-rails (~> 4.1.0)
   elasticsearch
+  execjs
   haml
   haml-rails
+  haml_coffee_assets!
   hashie
   interactor (~> 3.0)
   interactor-rails (~> 2.0)

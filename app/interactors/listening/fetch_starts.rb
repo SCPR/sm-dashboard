@@ -1,5 +1,5 @@
 module Listening
-  class Fetch
+  class FetchStarts
     include Interactor
 
     def call
@@ -7,30 +7,12 @@ module Listening
 
       aggs = {}
 
-      if context.aggs.include?(:sessions)
-        aggs[:sessions] = {
-          cardinality: {
-            field: "session_id",
-            precision_threshold: 100,
-          }
-        }
-      end
-
       if context.aggs.include?(:streams)
         aggs[:streams] = {
           terms: {
             field:  "stream",
             size:   10,
-          },
-          aggs: {
-            duration: { sum: { field: "duration" } },
           }
-        }
-      end
-
-      if context.aggs.include?(:duration)
-        aggs[:duration] = {
-          sum: { field: "duration" }
         }
       end
 
@@ -40,28 +22,6 @@ module Listening
             filters: {
               "kpcc-iphone" => { term: { "client.ua" => "kpcciphone" }},
               "scprweb" => { term: { "client.ua" => "scprweb" }}
-            }
-          },
-          aggs: {
-            duration: { sum: { field: "duration"} }
-          }
-        }
-      end
-
-      if context.aggs.include?(:rewind)
-        aggs[:rewind] = {
-          range: {
-            field: "offsetSeconds",
-            ranges: [
-              { from:0, to:120 },
-              { from:120, to:900 },
-              { from:900, to:3600 },
-              { from:3600 }
-            ]
-          },
-          aggs: {
-            duration: {
-              sum: { field: "duration" }
             }
           }
         }
@@ -104,7 +64,11 @@ module Listening
 
       context._body = body
 
-      context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"listen", body:body)
+      context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"start", body:body)
+
+      # -- Clean up results -- #
+
+      context.results = { starts:context._results.hits.total }
     end
   end
 end

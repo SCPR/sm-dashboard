@@ -1,4 +1,19 @@
+.container-fluid
+    #top-line.row
+
+    .row
+        .col-md-12
+            %h2 Listeners by Stream
+            #graph-listeners
+    .row
+        .col-md-6
+            %h2 KPCC Clients
+            #graph-clients
+        .col-md-6
+            %h2 Session Durations
+            #graph-sessions
+
 #dash-body
 
 :javascript
-    sm = new SM_Analytics({target:"#dash-body"})
+    sm = new SM_Analytics()
