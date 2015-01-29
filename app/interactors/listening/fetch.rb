@@ -34,6 +34,12 @@ module Listening
         }
       end
 
+      if context.aggs.include?(:avg_duration)
+        aggs[:avg_duration] = {
+          percentiles: { field: "session_duration", percents:[50] }
+        }
+      end
+
       if context.aggs.include?(:clients)
         aggs[:clients] = {
           filters: {

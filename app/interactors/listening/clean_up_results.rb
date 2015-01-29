@@ -29,6 +29,10 @@ module Listening
         obj.listeners = ( b.duration.value / context.period_length ).round()
       end
 
+      if b.avg_duration?
+        obj.avg_duration = b.avg_duration.values[0]['50.0']
+      end
+
       if b.streams?
         obj.streams = {}
         b.streams.buckets.each do |sb|

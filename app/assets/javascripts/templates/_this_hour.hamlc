@@ -1,13 +1,17 @@
 .col-md-2.bg-success
     %h2 This Hour
-.col-md-4
+.col-md-3
     %h2
         = @listens?.listeners || "??"
         %small Listeners
-.col-md-3
+.col-md-4
     %h2
-        = @starts?.starts || "??"
-        %small Sessions Started
+        - if @listens?.avg_duration
+            = Math.floor(@listens.avg_duration / 60)
+            min
+        - else
+            ??
+        %small Median Duration
 .col-md-3
     %h2
         = @sessions?.sessions || "??"

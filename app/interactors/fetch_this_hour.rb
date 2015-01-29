@@ -12,7 +12,7 @@ class FetchThisHour
 
     # -- Listener Info -- #
 
-    listens_ctx = common_ctx.merge({ index:"listens", aggs:[:duration] })
+    listens_ctx = common_ctx.merge({ index:"listens", aggs:[:duration,:avg_duration] })
 
     [Common::DetermineIndices,Listening::Fetch,Listening::CleanUpResults].each do |c|
       res = c.call(listens_ctx)
@@ -23,6 +23,7 @@ class FetchThisHour
       listens_ctx = res
     end
 
+    context._listens = listens_ctx
     context.listens = listens_ctx.results
 
     # -- Starts Info -- #
