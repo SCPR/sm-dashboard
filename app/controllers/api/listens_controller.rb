@@ -6,6 +6,11 @@ module Api
       render :json => results.results
     end
 
+    def compare
+      results = FetchComparisonListening.call(listen_params)
+      render :json => results.results
+    end
+
     private
     def listen_params
       params.permit(:start,:limit)
