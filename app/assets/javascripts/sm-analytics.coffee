@@ -184,7 +184,6 @@ class SM_Analytics
 
             for m in @collection.models
                 for k,v of m.get("duration")
-                    console.log "k is !#{k}!", v
                     totals[k] += v
 
             console.log "totals is ", totals
@@ -198,6 +197,88 @@ class SM_Analytics
                 @chart.flush()
             , 300
             @
+
+    #----------
+
+    class @C3CompGraph extends Backbone.View
+        initialize: ->
+            @chart = c3.generate
+                bindto: @el,
+                data:
+                    rows:   @_data()
+                    x:      "x"
+                    type:   "spline"
+                    colors:
+                        today:      "#0000aa",
+                        yesterday:  "#777"
+                        week_ago:   "#aaa"
+                axis:
+                    x:
+                        type: "timeseries"
+                        tick:
+                            format: "%H:%M"
+                            count: 24
+                point:
+                    show: true
+                transition:
+                    duration: 0
+                point:
+                    r:  1
+                    focus:
+                        expand:
+                            r: 4
+
+        _data: ->
+            # data as rows...
+            data = [['x','today','yesterday','week_ago' ]]
+
+            for m in @collection.models
+                data.push [m.get("time"),m.get("value"),m.get("y_value"),m.get("w_value")]
+
+            data
+
+        render: ->
+            @chart.resize()
+            setTimeout =>
+                @chart.flush()
+            , 300
+            @
+
+    #----------
+
+    class @Comparison
+        constructor: ->
+            @data_points = new SM_Analytics.CompPoints
+
+            @data_points.on "reset", =>
+                console.log "should draw graph(s)"
+
+                @c3_comp = new SM_Analytics.C3CompGraph collection:@data_points
+                $("#graph-compare").html @c3_comp.el
+                @c3_comp.render()
+
+
+            $.getJSON "/api/listens/compare", (data) =>
+                # we want to loop through data.today, and map the values from
+                # data.yesterday and data.week_ago into it.
+
+                values = []
+
+                for d,idx in data.today
+                    yest = data.yesterday[idx]
+                    week = data.week_ago[idx]
+
+                    obj =
+                        time:       d.time
+                        value:      d.listeners
+                        y_time:     yest.time
+                        y_value:    yest.listeners
+                        w_time:     week.time
+                        w_value:    week.listeners
+
+                    values.push obj
+
+                @data_points.reset(values)
 
     #----------
 
@@ -238,5 +319,9 @@ class SM_Analytics
 
     class @Sessions extends @DataPoints
         model: SM_Analytics.SessionPeriod
+
+    #----------
+
+    class @CompPoints extends @DataPoints
 
 window.SM_Analytics = SM_Analytics

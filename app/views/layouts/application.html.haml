@@ -27,8 +27,10 @@
           = link_to "StreamMachine Analytics", "/", :class => "navbar-brand"
         #navbar.collapse.navbar-collapse
           %ul.nav.navbar-nav
-            %li.active
-              %a{:href => "#"} Home
+            %li
+              %a{:href => "/"} Dashboard
+            %li
+              %a{:href => "/compare"} Comparison
     .container
       - flash.each do |name, msg|
         = content_tag :div, :class => "alert alert-#{name == :error ? "danger" : "success" } alert-dismissable", :role => "alert" do

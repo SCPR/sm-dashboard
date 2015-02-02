@@ -6,5 +6,6 @@ Rails.application.routes.draw do
     get 'sessions' => "main#sessions"
   end
 
+  get "/compare" => "home#compare"
   root to:"home#dashboard"
 end
