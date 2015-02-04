@@ -12,7 +12,8 @@ module Common
       ts = context.start
 
       while 1
-        idx.push "#{ES_CONFIG.namespace}-#{context.index}-#{ ts.strftime("%Y-%m-%d") }"
+        zone_ts = ES_INDEX_TZ.at(ts)
+        idx.push "#{ES_CONFIG.namespace}-#{context.index}-#{ zone_ts.strftime("%Y-%m-%d") }"
         ts += 1.day
 
         break if ts > context.finish
