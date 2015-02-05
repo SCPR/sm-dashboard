@@ -15,4 +15,4 @@
 .col-md-3
     %h2
         = @sessions?.sessions || "??"
-        %small Sessions Completed
+        %small Sessions

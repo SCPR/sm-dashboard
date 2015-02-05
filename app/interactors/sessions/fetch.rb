@@ -24,7 +24,6 @@ module Sessions
           range: {
             field: "duration",
             ranges: [
-              { key:"< 1min",       to: 1.minute },
               { key:"1-10min",      from: 1.minute, to: 10.minutes },
               { key:"10-30min",     from: 10.minutes, to: 30.minutes },
               { key:"30-90min",     from: 30.minutes, to: 90.minutes },
@@ -79,12 +78,19 @@ module Sessions
         query: {
           constant_score: {
             filter: {
-              range: {
-                time: {
-                  gte:  context.start,
-                  lt:   context.finish,
-                }
-              }
+              and: [
+                {range: {
+                  time: {
+                    gte:  context.start,
+                    lt:   context.finish,
+                  }
+                }},
+                {range: {
+                  duration: {
+                    gte: 60
+                  }
+                }}
+              ]
             }
           }
         },

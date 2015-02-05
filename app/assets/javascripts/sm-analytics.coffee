@@ -6,7 +6,7 @@ class SM_Analytics
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
     @CLIENTS: ['kpcc-iphone','scprweb']
 
-    @SESSION_DUR_BUCKETS = ["< 1min","1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
+    @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
     constructor: (opts) ->
         console.log "SM Running!"

@@ -2,7 +2,7 @@ module Api
   class MainController < ApplicationController
     def hour
       results = FetchThisHour.call(default_params)
-      render json:{listens:results.listens,sessions:results.sessions,starts:results.starts}
+      render json:{listens:results.listens,sessions:results.sessions}
     end
 
     def sessions

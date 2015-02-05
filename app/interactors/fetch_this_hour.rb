@@ -28,18 +28,20 @@ class FetchThisHour
 
     # -- Starts Info -- #
 
-    starts_ctx = common_ctx.merge({index:"listens",aggs:[]})
+    if false
+      starts_ctx = common_ctx.merge({index:"listens",aggs:[]})
 
-    [Common::DetermineIndices,Listening::FetchStarts].each do |c|
-      res = c.call(starts_ctx)
-      if res.failed?
-        break
+      [Common::DetermineIndices,Listening::FetchStarts].each do |c|
+        res = c.call(starts_ctx)
+        if res.failed?
+          break
+        end
+
+        starts_ctx = res
       end
 
-      starts_ctx = res
+      context.starts = starts_ctx.results
     end
-
-    context.starts = starts_ctx.results
 
     # -- Session Info -- #
 
