@@ -45,7 +45,8 @@ module Listening
           filters: {
             filters: {
               "kpcc-iphone" => { term: { "client.ua" => "kpcciphone" }},
-              "scprweb" => { term: { "client.ua" => "scprweb" }}
+              "scprweb" => { term: { "client.ua" => "scprweb" }},
+              "kpcc-ipad" => { term: { "client.ua" => "scpripad" }}
             }
           },
           aggs: {

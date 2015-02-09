@@ -1,10 +1,10 @@
 #= require_tree ./templates
 
 class SM_Analytics
-    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcclive']
-    @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],["kpcclive"]]
+    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcclive','aac']
+    @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],["kpcclive"],["aac"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
-    @CLIENTS: ['kpcc-iphone','scprweb']
+    @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb']
 
     @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
