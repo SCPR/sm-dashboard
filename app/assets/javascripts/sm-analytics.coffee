@@ -1,8 +1,8 @@
 #= require_tree ./templates
 
 class SM_Analytics
-    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcclive','aac']
-    @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],["kpcclive"],["aac"]]
+    @STREAMS: ['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64','kpcc-aac-192','kpcc-aac-48','kpcclive','aac']
+    @STREAM_GROUPS: [['kpcc-aac-256','kpcc-aac-128','kpcc-aac-64'],['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
     @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','old-iphone']
 
