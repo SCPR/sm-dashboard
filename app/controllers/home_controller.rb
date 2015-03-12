@@ -6,4 +6,8 @@ class HomeController < ApplicationController
   def compare
 
   end
+
+  def hourly
+
+  end
 end

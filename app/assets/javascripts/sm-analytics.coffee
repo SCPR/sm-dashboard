@@ -1,107 +1,121 @@
 #= require_tree ./templates
 
 class SM_Analytics
-    @STREAMS: ['kpcc-aac-192','kpcc-aac-48','kpcclive','aac']
-    @STREAM_GROUPS: [['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"]]
+    @STREAMS: ['kpcc-aac-192','kpcc-aac-48','kpcclive','aac','kpccpfs']
+    @STREAM_GROUPS: [['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"],["kpccpfs"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
     @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','old-iphone']
 
     @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
-    constructor: (opts) ->
-        console.log "SM Running!"
+    DefaultOpts:
+        fetch_listens:      true
+        fetch_sessions:     true
+        listens_endpoint:   "/api/listens"
+        sessions_endpoint:  "/api/sessions"
+        graph_type:         "line"
+
+    constructor: (opts={}) ->
+        @opts = _.defaults opts, @DefaultOpts
 
         @data_points = new SM_Analytics.DataPoints
 
         @data_points.on "reset", =>
             console.log "should draw graph(s)"
 
-            @c3_g = new SM_Analytics.C3ListenersGraph collection:@data_points
-            $("#graph-listeners").html @c3_g.el
-            @c3_g.render()
+            if @opts.fetch_listens && $("#graph-listeners")
+                @c3_g = new SM_Analytics.C3ListenersGraph collection:@data_points, graph_type:@opts.graph_type
+                $("#graph-listeners").html @c3_g.el
+                @c3_g.render()
 
-            @c3_ua = new SM_Analytics.C3UAGraph collection:@data_points
-            $("#graph-clients").html @c3_ua.el
-            @c3_ua.render()
+            if @opts.fetch_listens && $("#graph-clients")
+                @c3_ua = new SM_Analytics.C3UAGraph collection:@data_points, graph_type:@opts.graph_type
+                $("#graph-clients").html @c3_ua.el
+                @c3_ua.render()
 
-        @sessions = new SM_Analytics.Sessions
+        if @opts.fetch_sessions
+            @sessions = new SM_Analytics.Sessions
 
-        @sessions.on "reset", =>
-            @g_sessions = new SM_Analytics.C3SessionsGraph collection:@sessions
-            $("#graph-sessions").html @g_sessions.el
-            @g_sessions.render()
+            @sessions.on "reset", =>
+                if $("#graph-sessions")
+                    @g_sessions = new SM_Analytics.C3SessionsGraph collection:@sessions
+                    $("#graph-sessions").html @g_sessions.el
+                    @g_sessions.render()
 
         # -- make our initial requests -- #
 
-        $.getJSON "/api/listens", (data) =>
-            @data_points.reset(data)
+        if @opts.fetch_listens
+            $.getJSON @opts.listens_endpoint, (data) =>
+                @data_points.reset(data)
 
-        $.getJSON "/api/sessions", (data) =>
-            @sessions.reset(data.periods)
+        if @opts.fetch_sessions
+            $.getJSON @opts.sessions_endpoint, (data) =>
+                @sessions.reset(data.periods)
 
         # -- set up "This Hour" top line -- #
 
-        @this_hour = new SM_Analytics.ThisHour
-        @hour_view = new SM_Analytics.ThisHourView model:@this_hour
-        $("#top-line").html @hour_view.el
-        @hour_view.render()
-        @this_hour.fetch()
-
-        setInterval =>
+        if $("#top-line")
+            @this_hour = new SM_Analytics.ThisHour
+            @hour_view = new SM_Analytics.ThisHourView model:@this_hour
+            $("#top-line").html @hour_view.el
+            @hour_view.render()
             @this_hour.fetch()
-        , 60*1000 # one minute
+
+            setInterval =>
+                @this_hour.fetch()
+            , 60*1000 # one minute
 
     #----------
 
     class @C3UAGraph extends Backbone.View
         className: "c3 c3_ua"
 
-        initialize: ->
-                @chart = c3.generate
-                    bindto: @el,
-                    data:
-                        type: "line"
-                        columns: @_data()
-                        x: "x"
-                    axis:
-                        x:
-                            type: "timeseries"
-                            tick:
-                                format: "%H:%M"
-                                count: 24
-                    point:
-                        show: true
-                    transition:
-                        duration: 0
-                    point:
-                        r:  1
-                        focus:
-                            expand:
-                                r: 4
+        initialize: (@opts) ->
+            @chart = c3.generate
+                bindto: @el,
+                data:
+                    type: @opts.graph_type
+                    columns: @_data()
+                    x: "x"
+                axis:
+                    x:
+                        type: "timeseries"
+                        tick:
+                            format: "%H:%M"
+                            count: 24
+                point:
+                    show: true
+                transition:
+                    duration: 0
+                point:
+                    r:  1
+                    focus:
+                        expand:
+                            r: 4
 
-            _data: ->
-                data = ( [s] for s in SM_Analytics.CLIENTS )
-                x = ["x"]
+        _data: ->
+            data = ( [s] for s in SM_Analytics.CLIENTS )
+            x = ["x"]
 
-                for m in @collection.models
-                    c = m.get("clients")
+            for m in @collection.models
+                c = m.get("clients")
 
-                    x.push m.get("time")
+                x.push m.get("time")
 
-                    for key,idx in SM_Analytics.CLIENTS
-                        if c[key]
-                            data[idx].push c[key].listeners
-                        else
-                            data[idx].push 0
+                for key,idx in SM_Analytics.CLIENTS
+                    if c[key]
+                        data[idx].push c[key].listeners
+                    else
+                        data[idx].push 0
 
-                [x,data...]
+            [x,data...]
 
-            render: ->
-                @chart.resize()
-                setTimeout =>
-                    @chart.flush()
-                , 300
-                @
+        render: ->
+            @chart.resize()
+            setTimeout =>
+                @chart.flush()
+            , 300
+            @
 
     #----------
 
