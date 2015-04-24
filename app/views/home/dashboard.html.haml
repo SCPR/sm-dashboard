@@ -3,17 +3,23 @@
 
     .row
         .col-md-12
-            %h2 Listeners by Stream
+            %h2 Listeners by Client Type
             #graph-listeners
     .row
-        .col-md-6
-            %h2 KPCC Clients
-            #graph-clients
-        .col-md-6
-            %h2 Session Durations
-            #graph-sessions
+        .col-md-12
+            %h2 Compared to One Week Ago
+            #graph-compare
 
 #dash-body
 
 :javascript
-    sm = new SM_Analytics()
+    listens_endpoint = "/api/listens"
+    compare_endpoint = "/api/listens/compare"
+
+    if (document.location.search) {
+        listens_endpoint += document.location.search
+        compare_endpoint += document.location.search
+    }
+
+    sm = new SM_Analytics({listens_endpoint:listens_endpoint})
+    comp = new SM_Analytics.Comparison({endpoint:compare_endpoint})

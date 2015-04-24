@@ -3,7 +3,7 @@ class FetchHourListening
 
   before do
     context.index         = "listens"
-    context.aggs          = [:streams,:clients]
+    context.aggs          = [:clients,:cume,:duration]
     context.period_length = 1.hour
     context.period_string = "1h"
   end

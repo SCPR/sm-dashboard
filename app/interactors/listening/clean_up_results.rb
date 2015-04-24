@@ -12,6 +12,14 @@ module Listening
         end
 
         context.results = clean
+      elsif context._results.aggregations.schedule?
+        clean = []
+        context._results.aggregations.schedule.buckets.each_with_index do |b,i|
+          obj = self._clean(b,Hashie::Mash.new(context.schedule[i]))
+          clean << obj
+        end
+
+        context.results = clean
       else
         context.results = self._clean(context._results.aggregations,Hashie::Mash.new())
       end
@@ -24,13 +32,26 @@ module Listening
         obj.sessions  = b.sessions.value
       end
 
+      if b.cume?
+        obj.cume      = b.cume.value
+      end
+
       if b.duration?
         obj.duration  = b.duration.value
-        obj.listeners = ( b.duration.value / context.period_length ).round()
+
+        if obj._duration
+          obj.listeners = ( b.duration.value / obj._duration ).round()
+        else
+          obj.listeners = ( b.duration.value / context.period_length ).round()
+        end
       end
 
       if b.avg_duration?
         obj.avg_duration = b.avg_duration.values[0]['50.0']
+      end
+
+      if b.starts?
+        obj.starts    = b.starts.buckets[0].sessions.value
       end
 
       if b.streams?

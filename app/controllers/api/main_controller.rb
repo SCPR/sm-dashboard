@@ -10,6 +10,11 @@ module Api
       render json:results.results
     end
 
+    def schedule
+      results = FetchScheduleListening.call(default_params)
+      render json:results.results
+    end
+
     private
     def default_params
       params.permit(:start,:limit)

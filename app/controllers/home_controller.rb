@@ -7,7 +7,7 @@ class HomeController < ApplicationController
 
   end
 
-  def hourly
+  def schedule
 
   end
 end

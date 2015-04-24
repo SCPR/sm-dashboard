@@ -1,10 +1,12 @@
 #= require_tree ./templates
+#= require "./comparison"
 
 class SM_Analytics
     @STREAMS: ['kpcc-aac-192','kpcc-aac-48','kpcclive','aac','kpccpfs']
     @STREAM_GROUPS: [['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"],["kpccpfs"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
     @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','old-iphone']
+    @CLIENT_LABELS: ['iPhone App','iPad App','SCPR.org','Old iPhone']
 
     @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
@@ -14,6 +16,7 @@ class SM_Analytics
         listens_endpoint:   "/api/listens"
         sessions_endpoint:  "/api/sessions"
         graph_type:         "line"
+        generic_keys:       ["TLH","cume"]
 
     constructor: (opts={}) ->
         @opts = _.defaults opts, @DefaultOpts
@@ -21,17 +24,15 @@ class SM_Analytics
         @data_points = new SM_Analytics.DataPoints
 
         @data_points.on "reset", =>
-            console.log "should draw graph(s)"
-
-            if @opts.fetch_listens && $("#graph-listeners")
+            if @opts.fetch_listens && $("#graph-listeners").length > 0
                 @c3_g = new SM_Analytics.C3ListenersGraph collection:@data_points, graph_type:@opts.graph_type
                 $("#graph-listeners").html @c3_g.el
                 @c3_g.render()
 
-            if @opts.fetch_listens && $("#graph-clients")
-                @c3_ua = new SM_Analytics.C3UAGraph collection:@data_points, graph_type:@opts.graph_type
-                $("#graph-clients").html @c3_ua.el
-                @c3_ua.render()
+            if @opts.fetch_listens && $("#graph-generic").length > 0
+                @c3_gen = new SM_Analytics.C3Generic collection:@data_points, graph_type:@opts.graph_type, keys:@opts.generic_keys
+                $("#graph-generic").html @c3_gen.el
+                @c3_gen.render()
 
         if @opts.fetch_sessions
             @sessions = new SM_Analytics.Sessions
@@ -67,10 +68,21 @@ class SM_Analytics
 
     #----------
 
-    class @C3UAGraph extends Backbone.View
-        className: "c3 c3_ua"
+    class @C3Generic extends Backbone.View
+        className: "c3 c3_generic"
 
         initialize: (@opts) ->
+            @_x = @opts.x || "time"
+
+            @_xopts =
+                if @_x == "time"
+                    type: "timeseries"
+                    tick:
+                        format: "%H:%M"
+                        count: 24
+                else
+                    type: "category"
+
             @chart = c3.generate
                 bindto: @el,
                 data:
@@ -78,11 +90,7 @@ class SM_Analytics
                     columns: @_data()
                     x: "x"
                 axis:
-                    x:
-                        type: "timeseries"
-                        tick:
-                            format: "%H:%M"
-                            count: 24
+                    x:  @_xopts
                 point:
                     show: true
                 transition:
@@ -94,19 +102,14 @@ class SM_Analytics
                             r: 4
 
         _data: ->
-            data = ( [s] for s in SM_Analytics.CLIENTS )
+            data = ( [k] for k in @opts.keys )
             x = ["x"]
 
             for m in @collection.models
-                c = m.get("clients")
+                x.push m.get(@_x)
 
-                x.push m.get("time")
-
-                for key,idx in SM_Analytics.CLIENTS
-                    if c[key]
-                        data[idx].push c[key].listeners
-                    else
-                        data[idx].push 0
+                for k,idx in @opts.keys
+                    data[idx].push m.get(k) || 0
 
             [x,data...]
 
@@ -123,19 +126,24 @@ class SM_Analytics
         className: "c3"
 
         initialize: ->
+            @_cohorts = [SM_Analytics.CLIENT_LABELS...,"Other"]
+
             @chart = c3.generate
                 bindto: @el,
                 data:
                     columns: @_data()
                     x: "x"
-                    groups: SM_Analytics.STREAM_GROUPS
-                    type: "spline"
+                    groups: [@_cohorts]
+                    type: "area-spline"
                 axis:
                     x:
                         type: "timeseries"
                         tick:
+                            fit: true
                             format: "%H:%M"
-                            count: 24
+                grid:
+                    y:
+                        show: true
                 point:
                     show: true
                 transition:
@@ -147,18 +155,23 @@ class SM_Analytics
                             r: 4
 
         _data: ->
-            data = ( [s] for s in SM_Analytics.STREAMS )
-            x = ["x"]
+            data = ( [s] for s in @_cohorts )
 
-            totals = ["Total"]
+            x = ["x"]
 
             for m in @collection.models
                 x.push m.get("time")
-                totals.push m.get("listeners")
+                c = m.get("clients")
 
-                streams = m.get("streams")
-                for key,idx in SM_Analytics.STREAMS
-                    data[idx].push streams[key]?.listeners || 0
+                client_total = 0
+                for key,idx in SM_Analytics.CLIENTS
+                    if c[key]
+                        data[idx].push c[key].listeners
+                        client_total += c[key].listeners
+                    else
+                        data[idx].push 0
+
+                data[data.length-1].push m.get("listeners") - client_total
 
             [x,data...]
 
@@ -232,6 +245,9 @@ class SM_Analytics
                         tick:
                             format: "%H:%M"
                             count: 24
+                grid:
+                    y:
+                        show: true
                 point:
                     show: true
                 transition:
@@ -244,9 +260,10 @@ class SM_Analytics
 
         _data: ->
             # data as rows...
-            data = [['x','today','yesterday','week_ago' ]]
+            data = [['x','Current','Vs. 24 Hours Earlier','Vs. One Week Earlier' ]]
 
             for m in @collection.models
+                #data.push [m.get("time"),( m.get("value") - m.get("y_value")),(m.get("value") - m.get("w_value"))]
                 data.push [m.get("time"),m.get("value"),m.get("y_value"),m.get("w_value")]
 
             data
@@ -260,35 +277,57 @@ class SM_Analytics
 
     #----------
 
-    class @Comparison
+    class @Schedule
         constructor: ->
+            @data_points = new SM_Analytics.DataPoints
+
+            @data_points.on "reset", =>
+                @c3_sched = new SM_Analytics.C3Generic collection:@data_points, x:"title", keys:["cume","listeners","starts"], graph_type:"bar"
+                $("#graph-schedule").html @c3_sched.el
+                @c3_sched.render()
+
+            $.getJSON "/api/schedule", (data) =>
+                @data_points.reset(data)
+
+    class @Comparison
+        DefaultOpts:
+            endpoint: "/api/listens/compare"
+
+        constructor: (opts) ->
+            @opts = _.defaults opts, @DefaultOpts
+
             @data_points = new SM_Analytics.CompPoints
 
             @data_points.on "reset", =>
                 console.log "should draw graph(s)"
 
-                @c3_comp = new SM_Analytics.C3CompGraph collection:@data_points
-                $("#graph-compare").html @c3_comp.el
-                @c3_comp.render()
+                #@c3_comp = new SM_Analytics.C3CompGraph collection:@data_points
+                #$("#graph-compare").html @c3_comp.el
+                #@c3_comp.render()
 
+                @graph = new SM_Comparison collection:@data_points
+                $("#graph-compare").html @graph.el
+                @graph.render()
 
-            $.getJSON "/api/listens/compare", (data) =>
+            $.getJSON @opts.endpoint, (data) =>
                 # we want to loop through data.today, and map the values from
                 # data.yesterday and data.week_ago into it.
 
                 values = []
 
                 for d,idx in data.today
-                    yest = data.yesterday[idx]
+                    #yest = data.yesterday[idx]
                     week = data.week_ago[idx]
 
                     obj =
                         time:       d.time
                         value:      d.listeners
-                        y_time:     yest.time
-                        y_value:    yest.listeners
-                        w_time:     week.time
-                        w_value:    week.listeners
+                        prev:       week.listeners
+                        prev_time:  week.time
+                        #y_time:     yest.time
+                        #y_value:    yest.listeners
+                        #w_time:     week.time
+                        #w_value:    week.listeners
 
                     values.push obj
 
@@ -319,6 +358,9 @@ class SM_Analytics
         constructor: (data,opts) ->
             data._time = data.time
             data.time = new Date(data.time)
+
+            if data.duration
+                data.TLH = Math.round(data.duration / 3600)
 
             super data, opts
 

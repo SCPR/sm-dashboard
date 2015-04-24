@@ -17,6 +17,7 @@ gem 'haml'
 gem 'haml-rails'
 gem 'hashie'
 gem 'elasticsearch'
+gem 'faraday'
 
 gem "interactor", "~> 3.0"
 gem "interactor-rails", "~> 2.0"

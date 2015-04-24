@@ -11,7 +11,7 @@ module Listening
         aggs[:sessions] = {
           cardinality: {
             field: "session_id",
-            precision_threshold: 100,
+            precision_threshold: 1000,
           }
         }
       end
@@ -75,10 +75,46 @@ module Listening
         }
       end
 
+      if context.aggs.include?(:cume)
+        aggs[:cume] = {
+          cardinality: {
+            field: "client.ip",
+            precision_threshold: 1000
+          }
+        }
+      end
+
+      if context.aggs.include?(:starts)
+        aggs[:starts] = {
+          range: {
+            field: "session_duration",
+            ranges: [{ from:60, to:90 }]
+          },
+          aggs: {
+            sessions: {
+              cardinality: {
+                field: "session_id",
+                precision_threshold: 1000
+              }
+            }
+          }
+        }
+      end
+
       # -- Periods? -- #
 
       if context.single_period
         aggs = aggs
+      elsif context.schedule
+        aggs = {
+          schedule: {
+            date_range: {
+              field:    "time",
+              ranges:   context.schedule.map { |s| { from:s.starts_at, to:s.ends_at } }
+            },
+            aggs: aggs
+          }
+        }
       else
         aggs = {
           periods: {

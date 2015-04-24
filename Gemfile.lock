@@ -206,6 +206,7 @@ DEPENDENCIES
   coffee-rails (~> 4.1.0)
   elasticsearch
   execjs
+  faraday
   haml
   haml-rails
   haml_coffee_assets!

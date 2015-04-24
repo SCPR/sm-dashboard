@@ -4,10 +4,11 @@ Rails.application.routes.draw do
     get 'listens' => "listens#index"
     get 'listens/compare' => "listens#compare"
     get 'listens/hour' => "listens#hour"
+    get 'schedule' => "main#schedule"
     get 'sessions' => "main#sessions"
   end
 
   get "/compare" => "home#compare"
-  get "/hourly" => "home#hourly"
+  get "/schedule" => "home#schedule"
   root to:"home#dashboard"
 end
