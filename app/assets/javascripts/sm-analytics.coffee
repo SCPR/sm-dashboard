@@ -5,8 +5,8 @@ class SM_Analytics
     @STREAMS: ['kpcc-aac-192','kpcc-aac-48','kpcclive','aac','kpccpfs']
     @STREAM_GROUPS: [['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"],["kpccpfs"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
-    @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','old-iphone']
-    @CLIENT_LABELS: ['iPhone App','iPad App','SCPR.org','Old iPhone']
+    @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','kpcc-android']
+    @CLIENT_LABELS: ['iPhone App','iPad App','SCPR.org','Android App']
 
     @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
