@@ -44,11 +44,11 @@ module Listening
         aggs[:clients] = {
           filters: {
             filters: {
-              "kpcc-iphone"   => { term: { "client.ua" => "kpcciphone" }},
-              "scprweb"       => { term: { "client.ua" => "scprweb" }},
-              "kpcc-ipad"     => { term: { "client.ua" => "scpripad" }},
-              "old-iphone"    => { term: { "client.ua" => "kpccpublicradioiphoneapp" }},
-              "kpcc-android"  => { term: { "client.ua" => "kpccandroid" }},
+              "kpcc-iphone"   => { prefix: { "client.ua" => "KPCCiPhone" }},
+              "scprweb"       => { prefix: { "client.ua" => "SCPRWEB" }},
+              "kpcc-ipad"     => { prefix: { "client.ua" => "SCPRIPAD" }},
+              "old-iphone"    => { prefix: { "client.ua" => "KPCCPublicRadioiPhoneApp" }},
+              "kpcc-android"  => { prefix: { "client.ua" => "KPCCAndroid" }},
             }
           },
           aggs: {
