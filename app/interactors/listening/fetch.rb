@@ -122,6 +122,7 @@ module Listening
             date_histogram: {
               field:    "time",
               interval: context.period_string,
+              min_doc_count: 0
             },
             aggs: aggs
           }
