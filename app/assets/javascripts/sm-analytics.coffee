@@ -322,8 +322,8 @@ class SM_Analytics
                     obj =
                         time:       d.time
                         value:      d.listeners
-                        prev:       week.listeners
-                        prev_time:  week.time
+                        prev:       week?.listeners || 0
+                        prev_time:  week?.time
                         #y_time:     yest.time
                         #y_value:    yest.listeners
                         #w_time:     week.time
