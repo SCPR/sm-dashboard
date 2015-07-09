@@ -62,9 +62,9 @@ class SM_Analytics
             @hour_view.render()
             @this_hour.fetch()
 
-            setInterval =>
-                @this_hour.fetch()
-            , 60*1000 # one minute
+            #setInterval =>
+            #    @this_hour.fetch()
+            #, 60*1000 # one minute
 
         if $("#client-peaks").length > 0
             @client_peaks = new SM_Analytics.ClientPeaksView collection:@data_points
