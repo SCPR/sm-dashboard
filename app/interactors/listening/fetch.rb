@@ -135,12 +135,24 @@ module Listening
         query: {
           constant_score: {
             filter: {
-              range: {
-                time: {
-                  gte:  context.start,
-                  lt:   context.finish,
+              and: [
+                {
+                  range: {
+                    time: {
+                      gte:  context.start,
+                      lt:   context.finish,
+                    }
+                  }
+                },
+                {
+                  range: {
+                    session_duration: {
+                      gte: 60
+                    }
+                  }
                 }
-              }
+
+              ]
             }
           }
         },

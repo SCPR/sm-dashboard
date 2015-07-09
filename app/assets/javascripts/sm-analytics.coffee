@@ -55,7 +55,7 @@ class SM_Analytics
 
         # -- set up "This Hour" top line -- #
 
-        if $("#top-line")
+        if $("#top-line").length > 0
             @this_hour = new SM_Analytics.ThisHour
             @hour_view = new SM_Analytics.ThisHourView model:@this_hour
             $("#top-line").html @hour_view.el
@@ -65,6 +65,11 @@ class SM_Analytics
             setInterval =>
                 @this_hour.fetch()
             , 60*1000 # one minute
+
+        if $("#client-peaks").length > 0
+            @client_peaks = new SM_Analytics.ClientPeaksView collection:@data_points
+            $("#client-peaks").html @client_peaks.el
+            @client_peaks.render()
 
     #----------
 
@@ -128,6 +133,8 @@ class SM_Analytics
         initialize: ->
             @_cohorts = [SM_Analytics.CLIENT_LABELS...,"Other"]
 
+            @_labelTimeFormat = d3.time.format("%-I:%M%p")
+
             @chart = c3.generate
                 bindto: @el,
                 data:
@@ -140,7 +147,7 @@ class SM_Analytics
                         type: "timeseries"
                         tick:
                             fit: true
-                            format: "%H:%M"
+                            format: "%-I:%M%p"
                 grid:
                     y:
                         show: true
@@ -153,6 +160,11 @@ class SM_Analytics
                     focus:
                         expand:
                             r: 4
+                tooltip:
+                    format:
+                        title: (x) =>
+                            point = @collection.findWhere(time:x)
+                            @_labelTimeFormat(x) + " (#{point?.get("listeners")||"??"})"
 
         _data: ->
             data = ( [s] for s in @_cohorts )
@@ -212,8 +224,6 @@ class SM_Analytics
             for m in @collection.models
                 for k,v of m.get("duration")
                     totals[k] += v
-
-            console.log "totals is ", totals
 
             t_arr = ["durations",( totals[k] for k in SM_Analytics.SESSION_DUR_BUCKETS )...]
             [t_arr]
@@ -349,6 +359,46 @@ class SM_Analytics
             @$el.html @template @model.toJSON()
 
             @
+
+    #----------
+
+    class @ClientPeaksView extends Backbone.View
+        template: JST["client_peaks"]
+
+        initialize: ->
+            @collection.on "reset", =>
+                @render()
+
+        _data: ->
+            clients = {}
+            other   = max:0, max_point:null
+
+            for key,idx in SM_Analytics.CLIENTS
+                clients[ key ] = label:SM_Analytics.CLIENT_LABELS[idx], max:0, max_point:null
+
+            for m in @collection.models
+                c = m.get("clients")
+
+                client_total = 0
+
+                for key in SM_Analytics.CLIENTS
+                    if c[key]
+                        if c[key].listeners > clients[key].max
+                            clients[key].max        = c[key].listeners
+                            clients[key].max_point  = m
+
+                        client_total += c[key].listeners
+
+                o_total = m.get("listeners") - client_total
+
+                if o_total > other.max
+                    other.max       = o_total
+                    other.max_point = m
+
+            clients:clients, other:other
+
+        render: ->
+            @$el.html @template @_data()
 
     #----------
 

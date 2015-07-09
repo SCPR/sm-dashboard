@@ -3,7 +3,7 @@
 .col-md-3
     %h2
         = @listens?.listeners || "??"
-        %small Listeners
+        %small Avg Listeners
 .col-md-4
     %h2
         - if @listens?.avg_duration
@@ -14,5 +14,5 @@
         %small Median Duration
 .col-md-3
     %h2
-        = @sessions?.sessions || "??"
-        %small Sessions
+        = @listens?.cume || "??"
+        %small CUME IPs

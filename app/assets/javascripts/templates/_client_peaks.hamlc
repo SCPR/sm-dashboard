@@ -1,0 +1,16 @@
+.col-md-2.bg-gray
+    %h2 Peak
+- timeF = d3.time.format("%a %-I:%M%p")
+- for k,c of @clients
+    .col-md-2
+        %h3
+            = c.max || "??"
+            %small
+                = c.label
+        = if c.max_point then timeF(c.max_point.get("time")) else "??"
+.col-md-2
+    %h3
+        = @other.max || "??"
+        %small
+            Other
+    = if @other.max_point then timeF(@other.max_point.get("time")) else "??"

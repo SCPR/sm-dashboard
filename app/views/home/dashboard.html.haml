@@ -1,13 +1,16 @@
 .container-fluid
     #top-line.row
 
+    #client-peaks.row
+
     .row
         .col-md-12
-            %h2 Listeners by Client Type
+            %h4.text-center Listeners by Platform
             #graph-listeners
+            %hr/
     .row
         .col-md-12
-            %h2 Compared to One Week Ago
+            %h4.text-center Compared to One Week Ago
             #graph-compare
 
 #dash-body
@@ -21,5 +24,5 @@
         compare_endpoint += document.location.search
     }
 
-    sm = new SM_Analytics({listens_endpoint:listens_endpoint})
+    sm = new SM_Analytics({listens_endpoint:listens_endpoint,fetch_sessions:false})
     comp = new SM_Analytics.Comparison({endpoint:compare_endpoint})
