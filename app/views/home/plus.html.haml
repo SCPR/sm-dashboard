@@ -1,0 +1,25 @@
+.container-fluid
+    .row
+        .col-md-12
+            %h4.text-center Listeners by Plus Stream
+            #graph-streams
+            %hr/
+
+#dash-body
+
+:javascript
+    listens_endpoint = "/api/listens"
+
+    if (document.location.search) {
+        listens_endpoint += document.location.search
+    }
+
+    sm = new SM_Analytics({listens_endpoint:listens_endpoint,fetch_sessions:false})
+
+    _buildPlus = function() {
+        plus = new SM_Plus({collection:sm.data_points})
+        $("#graph-streams").html(plus.el)
+        plus.render()
+    }
+    sm.data_points.on("reset",_buildPlus)
+    _buildPlus()

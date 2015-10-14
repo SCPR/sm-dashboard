@@ -10,4 +10,8 @@ class HomeController < ApplicationController
   def schedule
 
   end
+
+  def plus
+
+  end
 end

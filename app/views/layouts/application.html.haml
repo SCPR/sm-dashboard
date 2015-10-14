@@ -29,6 +29,8 @@
           %ul.nav.navbar-nav
             %li
               %a{:href => "/"} Dashboard
+            %li
+              %a{:href => "/plus"} KPCC Plus
     .container
       - flash.each do |name, msg|
         = content_tag :div, :class => "alert alert-#{name == :error ? "danger" : "success" } alert-dismissable", :role => "alert" do

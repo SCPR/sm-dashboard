@@ -17,3 +17,4 @@
 //= require hamlcoffee
 
 //= require sm-analytics
+//= require sm-plus

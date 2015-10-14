@@ -10,5 +10,6 @@ Rails.application.routes.draw do
 
   get "/compare" => "home#compare"
   get "/schedule" => "home#schedule"
+  get "/plus" => "home#plus"
   root to:"home#dashboard"
 end
