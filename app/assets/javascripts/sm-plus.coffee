@@ -1,6 +1,6 @@
 class window.SM_Plus extends Backbone.View
-    @PLUS_STREAMS: ['kpccplus-mp3','kpccplus-hls-48','kpccplus-hls-192']
-    @PLUS_GROUPS: [['kpccplus-mp3'],['kpccplus-hls-48','kpccplus-hls-192']]
+    @PLUS_STREAMS: ['kpcc-plus-mp3','kpcc-plus-48','kpcc-plus-192']
+    @PLUS_GROUPS: [['kpcc-plus-mp3'],['kpcc-plus-48','kpcc-plus-192']]
     @PLUS_GROUP_LABELS: ['Plus Web','Plus iPhone']
 
     class_name: "plus"
