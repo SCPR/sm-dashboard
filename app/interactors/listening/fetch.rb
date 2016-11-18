@@ -49,6 +49,7 @@ module Listening
               "kpcc-ipad"     => { prefix: { "client.ua" => "SCPRIPAD" }},
               "old-iphone"    => { prefix: { "client.ua" => "KPCCPublicRadioiPhoneApp" }},
               "kpcc-android"  => { prefix: { "client.ua" => "KPCCAndroid" }},
+              "iheartradio"   => { prefix: {"client.ua" =>  "iheartradio"}}
             }
           },
           aggs: {

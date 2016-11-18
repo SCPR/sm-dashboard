@@ -5,8 +5,8 @@ class SM_Analytics
     @STREAMS: ['kpcc-aac-192','kpcc-aac-48','kpcclive','aac','kpccpfs']
     @STREAM_GROUPS: [['kpcc-aac-192','kpcc-aac-48'],["kpcclive"],["aac"],["kpccpfs"]]
     @REWINDS: ['0.0-120.0','120.0-900.0','900.0-3600.0','3600.0-*']
-    @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','kpcc-android']
-    @CLIENT_LABELS: ['iPhone App','iPad App','SCPR.org','Android App']
+    @CLIENTS: ['kpcc-iphone','kpcc-ipad','scprweb','kpcc-android', 'iheartradio']
+    @CLIENT_LABELS: ['iPhone App','iPad App','SCPR.org','Android App', 'iHeartRadio']
 
     @SESSION_DUR_BUCKETS = ["1-10min","10-30min","30-90min","90min - 4hr","4hr+"]
 
@@ -309,12 +309,6 @@ class SM_Analytics
             @data_points = new SM_Analytics.CompPoints
 
             @data_points.on "reset", =>
-                console.log "should draw graph(s)"
-
-                #@c3_comp = new SM_Analytics.C3CompGraph collection:@data_points
-                #$("#graph-compare").html @c3_comp.el
-                #@c3_comp.render()
-
                 @graph = new SM_Comparison collection:@data_points
                 $("#graph-compare").html @graph.el
                 @graph.render()
