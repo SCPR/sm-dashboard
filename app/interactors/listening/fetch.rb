@@ -44,6 +44,7 @@ module Listening
         aggs[:clients] = {
           filters: {
             filters: {
+              "kpcc-ios"      => { prefix: { "client.ua" => "KPCCiOS" }},
               "kpcc-iphone"   => { prefix: { "client.ua" => "KPCCiPhone" }},
               "scprweb"       => { prefix: { "client.ua" => "SCPRWEB" }},
               "kpcc-ipad"     => { prefix: { "client.ua" => "SCPRIPAD" }},
