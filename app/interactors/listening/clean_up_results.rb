@@ -3,7 +3,7 @@ module Listening
     include Interactor
 
     def call
-      if context._results.aggregations.periods?
+      if context._results.aggregations && context._results.aggregations.periods?
         clean = []
         context._results.aggregations.periods.buckets.each do |b|
           ts = Time.at(b['key'] / 1000)
@@ -12,7 +12,7 @@ module Listening
         end
 
         context.results = clean
-      elsif context._results.aggregations.schedule?
+      elsif context._results.aggregations && context._results.aggregations.schedule?
         clean = []
         context._results.aggregations.schedule.buckets.each_with_index do |b,i|
           obj = self._clean(b,Hashie::Mash.new(context.schedule[i]))

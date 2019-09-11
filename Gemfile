@@ -16,13 +16,13 @@ gem 'bootstrap-generators', '~> 3.3.1'
 gem 'haml'
 gem 'haml-rails'
 gem 'hashie'
-gem 'elasticsearch'
+gem 'elasticsearch', "~> 7.0.0"
 gem 'faraday'
 
 gem "interactor", "~> 3.0"
 gem "interactor-rails", "~> 2.0"
 
-gem 'haml_coffee_assets', github:"netzpirat/haml_coffee_assets"
+gem 'haml_coffee_assets', '>= 1.6.2'
 gem 'execjs'
 
 group :development, :test do

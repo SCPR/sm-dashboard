@@ -137,34 +137,36 @@ module Listening
         query: {
           constant_score: {
             filter: {
-              and: [
-                {
-                  range: {
-                    time: {
-                      gte:  context.start,
-                      lt:   context.finish,
+              bool: {
+                must: [
+                  {
+                    range: {
+                      time: {
+                        gte:  context.start,
+                        lt:   context.finish,
+                      }
+                    }
+                  },
+                  {
+                    range: {
+                      session_duration: {
+                        gte: 60
+                      }
                     }
                   }
-                },
-                {
-                  range: {
-                    session_duration: {
-                      gte: 60
-                    }
-                  }
-                }
 
-              ]
+                ]
+              }
             }
           }
         },
         size: 0,
         aggs: aggs
       }
-
+      Rails.logger.info body
       context._body = body
-
       context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"listen", body:body)
+      Rails.logger.info(context._results)
     end
   end
 end

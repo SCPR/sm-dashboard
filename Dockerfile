@@ -26,16 +26,21 @@ RUN apt-get install -y ruby`ruby -e 'puts RUBY_VERSION[/\d+\.\d+/]'`-dev
 RUN groupadd scpr && useradd -g scpr scpr
 
 ENV HOME /streamdash
+ENV RAILS_ENV=production
+ENV RAILS_LOG_TO_STDOUT true
+
 RUN mkdir $HOME
 WORKDIR $HOME
 
-RUN gem install bundler -v '1.16.5'
+RUN gem install bundler -v '1.17.1'
 
 ENV PATH="${HOME}/bin:${PATH}"
 
 COPY Gemfile* $HOME/
-RUN bundle install --without development test
+RUN bundle install --without development test --binstubs
 
-ENV RAILS_ENV=production
-ENV RAILS_LOG_TO_STDOUT true
+COPY . $HOME
+RUN bundle exec rake assets:precompile
+RUN rm config/secrets.yml
+
 
