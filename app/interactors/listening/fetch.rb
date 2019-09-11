@@ -163,10 +163,8 @@ module Listening
         size: 0,
         aggs: aggs
       }
-      Rails.logger.info body
       context._body = body
       context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"listen", body:body)
-      Rails.logger.info(context._results)
     end
   end
 end
