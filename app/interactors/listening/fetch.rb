@@ -137,34 +137,39 @@ module Listening
         query: {
           constant_score: {
             filter: {
-              and: [
-                {
-                  range: {
-                    time: {
-                      gte:  context.start,
-                      lt:   context.finish,
+              bool: {
+                must: [
+                  {
+                    match: {
+                      type: 'listen'
+                    }
+                  },
+                  {
+                    range: {
+                      time: {
+                        gte:  context.start,
+                        lt:   context.finish,
+                      }
+                    }
+                  },
+                  {
+                    range: {
+                      session_duration: {
+                        gte: 60
+                      }
                     }
                   }
-                },
-                {
-                  range: {
-                    session_duration: {
-                      gte: 60
-                    }
-                  }
-                }
 
-              ]
+                ]
+              }
             }
           }
         },
         size: 0,
         aggs: aggs
       }
-
       context._body = body
-
-      context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"listen", body:body)
+      context._results = Hashie::Mash.new( ES_CLIENT.search index: context.indices, ignore_unavailable:true, body:body)
     end
   end
 end

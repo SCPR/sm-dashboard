@@ -1,7 +1,14 @@
 ES_CONFIG = Hashie::Mash.new Rails.application.secrets.elasticsearch
 
 ES_CLIENT = Elasticsearch::Client.new(
-  hosts:              ES_CONFIG.host,
+  hosts: [{
+            host: ES_CONFIG.host,
+            port: ES_CONFIG.port,
+            user: ES_CONFIG.user,
+            password: ES_CONFIG.password,
+            scheme: ES_CONFIG.scheme,
+            namespace: ES_CONFIG.namespace
+          }],
   retry_on_failure:   3,
   reload_connections: true,
 )

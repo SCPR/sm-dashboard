@@ -3,6 +3,7 @@ module Listening
     include Interactor
 
     def call
+      return unless context._results.aggregations
       if context._results.aggregations.periods?
         clean = []
         context._results.aggregations.periods.buckets.each do |b|
