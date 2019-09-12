@@ -40,6 +40,7 @@ COPY Gemfile* $HOME/
 RUN bundle install --without development test --binstubs
 
 COPY . $HOME
+RUN cp config/secrets.yml.template config/secrets.yml
 RUN bundle exec rake assets:precompile
 RUN rm config/secrets.yml
 

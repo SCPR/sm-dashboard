@@ -14,6 +14,10 @@
 /api/listens
 
 
+# Development
+
+##
+If you make any changes to the javascript, remember to run `bundle exec rake assets:precompile` to get `application.js` up to date.
 
 # Deployment
 

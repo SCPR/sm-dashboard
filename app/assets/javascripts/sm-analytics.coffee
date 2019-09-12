@@ -328,10 +328,6 @@ class SM_Analytics
                         value:      d.listeners
                         prev:       week?.listeners || 0
                         prev_time:  week?.time
-                        #y_time:     yest.time
-                        #y_value:    yest.listeners
-                        #w_time:     week.time
-                        #w_value:    week.listeners
 
                     values.push obj
 
@@ -343,7 +339,7 @@ class SM_Analytics
         url: "/api/hour"
 
     class @ThisHourView extends Backbone.View
-        template: JST['this_hour']
+        template: JST["templates/this_hour"]
 
         initialize: ->
             @model.on "change", =>
@@ -357,7 +353,7 @@ class SM_Analytics
     #----------
 
     class @ClientPeaksView extends Backbone.View
-        template: JST["client_peaks"]
+        template: JST["templates/client_peaks"]
 
         initialize: ->
             @collection.on "reset", =>
