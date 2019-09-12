@@ -6,7 +6,8 @@ ES_CLIENT = Elasticsearch::Client.new(
             port: ES_CONFIG.port,
             user: ES_CONFIG.user,
             password: ES_CONFIG.password,
-            scheme: ES_CONFIG.scheme
+            scheme: ES_CONFIG.scheme,
+            namespace: ES_CONFIG.namespace
           }],
   retry_on_failure:   3,
   reload_connections: true,

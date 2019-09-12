@@ -140,6 +140,11 @@ module Listening
               bool: {
                 must: [
                   {
+                    match: {
+                      type: 'listen'
+                    }
+                  },
+                  {
                     range: {
                       time: {
                         gte:  context.start,
@@ -164,7 +169,7 @@ module Listening
         aggs: aggs
       }
       context._body = body
-      context._results = Hashie::Mash.new( ES_CLIENT.search index:context.indices, ignore_unavailable:true, type:"listen", body:body)
+      context._results = Hashie::Mash.new( ES_CLIENT.search index: context.indices, ignore_unavailable:true, body:body)
     end
   end
 end
