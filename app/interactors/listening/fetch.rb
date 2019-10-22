@@ -10,7 +10,7 @@ module Listening
       if context.aggs.include?(:sessions)
         aggs[:sessions] = {
           cardinality: {
-            field: "session_id",
+            field: "session_id.keyword",
             precision_threshold: 1000,
           }
         }
@@ -19,7 +19,7 @@ module Listening
       if context.aggs.include?(:streams)
         aggs[:streams] = {
           terms: {
-            field:  "stream",
+            field:  "stream.keyword",
             size:   10,
           },
           aggs: {
@@ -44,13 +44,13 @@ module Listening
         aggs[:clients] = {
           filters: {
             filters: {
-              "kpcc-ios"      => { prefix: { "client.ua" => "KPCCiOS" }},
-              "kpcc-iphone"   => { prefix: { "client.ua" => "KPCCiPhone" }},
-              "scprweb"       => { prefix: { "client.ua" => "SCPRWEB" }},
-              "kpcc-ipad"     => { prefix: { "client.ua" => "SCPRIPAD" }},
-              "old-iphone"    => { prefix: { "client.ua" => "KPCCPublicRadioiPhoneApp" }},
-              "kpcc-android"  => { prefix: { "client.ua" => "KPCCAndroid" }},
-              "iheartradio"   => { prefix: {"client.ua" =>  "iheartradio"}}
+              "kpcc-ios"      => { prefix: { "client.ua.keyword" => "KPCCiOS" }},
+              "kpcc-iphone"   => { prefix: { "client.ua.keyword" => "KPCCiPhone" }},
+              "scprweb"       => { prefix: { "client.ua.keyword" => "SCPRWEB" }},
+              "kpcc-ipad"     => { prefix: { "client.ua.keyword" => "SCPRIPAD" }},
+              "old-iphone"    => { prefix: { "client.ua.keyword" => "KPCCPublicRadioiPhoneApp" }},
+              "kpcc-android"  => { prefix: { "client.ua.keyword" => "KPCCAndroid" }},
+              "iheartradio"   => { prefix: {"client.ua.keyword" =>  "iheartradio"}}
             }
           },
           aggs: {
@@ -81,7 +81,7 @@ module Listening
       if context.aggs.include?(:cume)
         aggs[:cume] = {
           cardinality: {
-            field: "client.ip",
+            field: "client.ip.keyword",
             precision_threshold: 1000
           }
         }
